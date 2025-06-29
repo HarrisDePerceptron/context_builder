@@ -259,9 +259,7 @@ def combined_source(files: List[Path], project_root: Path) -> str:
 
 # ───────────────────────────── main ─────────────────────────────
 def main() -> None:
-    ap = argparse.ArgumentParser(
-        description="Generate a single-file project audit report."
-    )
+    ap = argparse.ArgumentParser(description="Generate a single-file project context")
     ap.add_argument("root", type=Path, help="Project root directory")
     ap.add_argument(
         "--out", type=Path, default="project_context.txt", help="Output file"
@@ -312,7 +310,3 @@ def main() -> None:
 
     args.out.write_text("\n".join(report), encoding="utf-8")
     print(f"[OK] Report written → {args.out}")
-
-
-if __name__ == "__main__":
-    main()

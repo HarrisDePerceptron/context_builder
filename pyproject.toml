@@ -1,7 +1,18 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "context-builder"
 version = "0.1.0"
-description = "Add your description here"
+description = "Building context of projects"
 readme = "README.md"
 requires-python = ">=3.12"
+authors = [{name = "Muhammad Harris", email = "harris.perceptron@gmail.com"}]
 dependencies = []
+keywords = ["code-introspection", "cli", "audit","context-builder"]
+
+
+
+[project.scripts]
+context_builder = "context_builder.cli:main"
