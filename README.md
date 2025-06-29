@@ -4,10 +4,11 @@
 
 ```bash
 uv venv --python 3.13 
-source .venv/bin/activate
 uv sync
 
+source .venv/bin/activate
+
 python main.py <source directory> --out <output file>
-python main.py <source directory> --out <output file> [--include-source]
+python main.py <source directory> --out <output file> --include-source
 ```
 ```
