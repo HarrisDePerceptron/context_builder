@@ -3,7 +3,7 @@
 make_report.py · single-file project report generator  v4
 ────────────────────────────────────────────────────────
 
-Report layout
+Context layout
 1. Project structure (ASCII tree)
 2. Function signatures
 3. Class definitions  ← now lists attribute *types*
