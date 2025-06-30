@@ -37,8 +37,6 @@ context_builder <source directory> --out <output file>
 content_builder <source directory> --out <output file> --include-source
 
 ```
-
-
 ### Context Layout 
 ```
 1. Project structure (ASCII tree)
