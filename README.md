@@ -8,8 +8,6 @@ uv sync
 
 source .venv/bin/activate
 
-python main.py <source directory> --out <output file>
-python main.py <source directory> --out <output file> --include-source
 ```
 
 ### Installing 
@@ -24,7 +22,15 @@ Or
 ```bash
 
 pipx install context_builder \
-  --pip-args="git+https://github.com/HarrisDePerceptron/context_builder.git@v0.1.0#egg=context_builder"
+  --pip-args="git+https://github.com/HarrisDePerceptron/context_builder.git"
 
 ```
+
+### Usage
+
+```bash
+context_builder <source directory> --out <output file>
+content_builder <source directory> --out <output file> --include-source
+
 ```
+
