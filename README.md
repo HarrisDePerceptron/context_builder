@@ -41,8 +41,6 @@ content_builder <source directory> --out <output file> --include-source
 
 ### Context Layout 
 ```
-```
-
 1. Project structure (ASCII tree)
 2. Function signatures
 3. Class definitions  ← now lists attribute *types*
