@@ -1,7 +1,7 @@
 ## Context Builder
 Build context of codebases for AI injection
 
-Currently python is supported. This may change in the future 
+Supports both Python and TypeScript projects. 
 
 
 ### Getting Started
@@ -33,9 +33,16 @@ pipx install context_builder \
 ### Usage
 
 ```bash
+# For Python projects
 context_builder <source directory> --out <output file>
-content_builder <source directory> --out <output file> --include-source
+context_builder <source directory> --out <output file> --include-source
 
+# For TypeScript projects
+context_builder <source directory> --out <output file>
+context_builder <source directory> --out <output file> --include-source
+
+# Works with mixed Python/TypeScript projects
+context_builder <source directory> --out <output file>
 ```
 ### Context Layout 
 ```

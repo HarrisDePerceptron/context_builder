@@ -7,7 +7,7 @@ name = "context-builder"
 version = "0.1.0"
 description = "Building context of projects"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 authors = [{name = "Muhammad Harris", email = "harris.perceptron@gmail.com"}]
 dependencies = []
 keywords = ["code-introspection", "cli", "audit","context-builder"]

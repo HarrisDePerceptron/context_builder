@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import ast
 import fnmatch
+import json
 import sys
 from pathlib import Path
 from typing import List, Dict, Tuple, Set
@@ -26,6 +27,8 @@ try:
     import tomllib  # Python ≥3.11
 except ModuleNotFoundError:  # Python 3.8–3.10
     import tomli as tomllib  # type: ignore
+
+from .typescript_parser import ts_parser
 
 
 # ────────────────────────── ignore config ──────────────────────────
@@ -89,11 +92,21 @@ def ascii_tree(root: Path, git_patterns: List[str]) -> str:
     return "\n".join(lines)
 
 
-# ────────────────────── python file discovery ─────────────────────
+# ────────────────────── file discovery ─────────────────────
 def list_py_files(root: Path, git_patterns: List[str]) -> List[Path]:
     return sorted(
         p for p in root.rglob("*.py") if not should_ignore(p, root, git_patterns)
     )
+
+
+def list_ts_files(root: Path, git_patterns: List[str]) -> List[Path]:
+    """Find TypeScript files in the project."""
+    ts_files = []
+    for pattern in ["*.ts", "*.tsx"]:
+        ts_files.extend(
+            p for p in root.rglob(pattern) if not should_ignore(p, root, git_patterns)
+        )
+    return sorted(ts_files)
 
 
 # ─────────────────── class / func extraction helpers ──────────────
@@ -104,9 +117,7 @@ def _type_of_assign(node: ast.AST) -> str:
     """
     if isinstance(node, ast.AnnAssign) and node.annotation:
         return ast.unparse(node.annotation)
-    if isinstance(node, (ast.AnnAssign, ast.Assign)) and getattr(
-        node, "type_comment", None
-    ):
+    if isinstance(node, ast.Assign) and getattr(node, "type_comment", None):
         return node.type_comment or "Unknown"
     return "Unknown"
 
@@ -227,15 +238,17 @@ def extract_from_file(file: Path, project_root: Path) -> Tuple[List[str], List[s
 
 # ───────────────────────── dependencies ──────────────────────────
 def gather_dependencies(root: Path) -> List[str]:
+    """Gather dependencies from Python and Node.js projects."""
+    deps: List[str] = []
+    
+    # Python dependencies
     pj = root / "pyproject.toml"
     if pj.exists():
         data = tomllib.loads(pj.read_text(encoding="utf-8"))
-        deps: List[str] = []
         deps.extend(data.get("project", {}).get("dependencies", []) or [])
         tool = data.get("tool", {})
         deps.extend(tool.get("poetry", {}).get("dependencies", {}).keys())
         deps.extend(tool.get("pdm", {}).get("dependencies", {}).keys())
-        return sorted(set(deps))
 
     req = root / "requirements.txt"
     if req.exists():
@@ -243,8 +256,19 @@ def gather_dependencies(root: Path) -> List[str]:
             ln.split("#")[0].strip()
             for ln in req.read_text(encoding="utf-8").splitlines()
         ]
-        return sorted({ln for ln in lines if ln})
-    return []
+        deps.extend([ln for ln in lines if ln])
+    
+    # Node.js dependencies
+    package_json = root / "package.json"
+    if package_json.exists():
+        try:
+            data = json.loads(package_json.read_text(encoding="utf-8"))
+            deps.extend(data.get("dependencies", {}).keys())
+            deps.extend(data.get("devDependencies", {}).keys())
+        except json.JSONDecodeError:
+            pass
+    
+    return sorted(set(deps))
 
 
 # ───────────────────────── source combiner ───────────────────────
@@ -275,8 +299,10 @@ def main() -> None:
 
     git_patterns = load_gitignore(root)
     py_files = list_py_files(root, git_patterns)
-    if not py_files:
-        sys.exit("[ERR] No Python files found (after filtering).")
+    ts_files = list_ts_files(root, git_patterns)
+    
+    if not py_files and not ts_files:
+        sys.exit("[ERR] No Python or TypeScript files found (after filtering).")
 
     # 1. Project structure
     report: List[str] = [
@@ -287,8 +313,16 @@ def main() -> None:
     # 2 & 3. Functions and classes
     all_funcs: List[str] = []
     all_classes: List[str] = []
+    
+    # Process Python files
     for f in py_files:
         funcs, classes = extract_from_file(f, root)
+        all_funcs.extend(funcs)
+        all_classes.extend(classes)
+    
+    # Process TypeScript files
+    for f in ts_files:
+        funcs, classes = ts_parser.parse_file(f)
         all_funcs.extend(funcs)
         all_classes.extend(classes)
 
@@ -306,7 +340,8 @@ def main() -> None:
     # 5. Combined source (optional)
     if args.include_source:
         report.append("# ───────────── Combined Source ─────────────")
-        report.append(combined_source(py_files, root))
+        all_files = py_files + ts_files
+        report.append(combined_source(all_files, root))
 
     args.out.write_text("\n".join(report), encoding="utf-8")
     print(f"[OK] Report written → {args.out}")
