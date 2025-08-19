@@ -99,14 +99,14 @@ def list_py_files(root: Path, git_patterns: List[str]) -> List[Path]:
     )
 
 
-def list_ts_files(root: Path, git_patterns: List[str]) -> List[Path]:
-    """Find TypeScript files in the project."""
-    ts_files = []
-    for pattern in ["*.ts", "*.tsx"]:
-        ts_files.extend(
+def list_ts_js_files(root: Path, git_patterns: List[str]) -> List[Path]:
+    """Find JavaScript and TypeScript files in the project."""
+    js_ts_files = []
+    for pattern in ["*.js", "*.jsx", "*.ts", "*.tsx"]:
+        js_ts_files.extend(
             p for p in root.rglob(pattern) if not should_ignore(p, root, git_patterns)
         )
-    return sorted(ts_files)
+    return sorted(js_ts_files)
 
 
 # ─────────────────── class / func extraction helpers ──────────────
@@ -299,10 +299,10 @@ def main() -> None:
 
     git_patterns = load_gitignore(root)
     py_files = list_py_files(root, git_patterns)
-    ts_files = list_ts_files(root, git_patterns)
-    
-    if not py_files and not ts_files:
-        sys.exit("[ERR] No Python or TypeScript files found (after filtering).")
+    js_ts_files = list_ts_js_files(root, git_patterns)
+
+    if not py_files and not js_ts_files:
+        sys.exit("[ERR] No Python or JavaScript/TypeScript files found (after filtering).")
 
     # 1. Project structure
     report: List[str] = [
@@ -320,8 +320,8 @@ def main() -> None:
         all_funcs.extend(funcs)
         all_classes.extend(classes)
     
-    # Process TypeScript files
-    for f in ts_files:
+    # Process JavaScript and TypeScript files
+    for f in js_ts_files:
         funcs, classes = ts_parser.parse_file(f)
         all_funcs.extend(funcs)
         all_classes.extend(classes)
@@ -340,7 +340,7 @@ def main() -> None:
     # 5. Combined source (optional)
     if args.include_source:
         report.append("# ───────────── Combined Source ─────────────")
-        all_files = py_files + ts_files
+        all_files = py_files + js_ts_files
         report.append(combined_source(all_files, root))
 
     args.out.write_text("\n".join(report), encoding="utf-8")
