@@ -29,6 +29,7 @@ except ModuleNotFoundError:  # Python 3.8–3.10
     import tomli as tomllib  # type: ignore
 
 from .typescript_parser import ts_parser
+from .javascript_parser import js_parser
 
 
 # ────────────────────────── ignore config ──────────────────────────
@@ -322,7 +323,10 @@ def main() -> None:
     
     # Process JavaScript and TypeScript files
     for f in js_ts_files:
-        funcs, classes = ts_parser.parse_file(f)
+        if f.suffix in {".js", ".jsx"}:
+            funcs, classes = js_parser.parse_file(f)
+        else:
+            funcs, classes = ts_parser.parse_file(f)
         all_funcs.extend(funcs)
         all_classes.extend(classes)
 
